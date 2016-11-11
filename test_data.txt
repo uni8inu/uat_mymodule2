@@ -1,0 +1,23 @@
+This is sample.
+aa
+If you use uat_mymodule,
+erase all of this texts!
+And write testdata(input() data/ expected) on this file.
+
+out:  This is sample.
+out:  aa
+out:  If you use uat_mymodule,
+out:  erase all of this texts!
+out:  And write testdata(input() data/ expected) on this file.
+
+input()
+input() wow
+wan wan
+4
+go
+
+out:  input()
+out:  input() wow
+out:  ##this is unittest error sample##
+out:  4
+out:  go
