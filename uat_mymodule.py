@@ -10,28 +10,31 @@ from runpy import run_module
 テスト対象以外の.pyファイルがあると動作しない
 """
 
-#settings
+# settings
 test_data_name = 'test_data.txt'  # 入力データと期待値が記入されたファイル名
-#(option) 直接テストモジュールを指定することもできる。その場合はモジュール名を以下に記入する
+# (option) 直接テストモジュールを指定することもできる。その場合はモジュール名を以下に記入する
 # ex.) sample_module  # NG) sample_module.py
 test_module_name = ""
 
+
 def pickup_module():
+    # 同一ディレクトリからテスト対象のモジュールを探す
     module_name = ""
     f_names = os.listdir(".")
 
     # *.pyのみ捜索する
-    f_names = list(filter(lambda x: x.endswith(".py"),f_names))
-    f_names = list(filter(lambda x: x!="uat_mymodule.py",f_names))  #このモジュールは除外
+    f_names = list(filter(lambda x: x.endswith(".py"), f_names))
+    f_names = list(filter(lambda x: x != "uat_mymodule.py", f_names))  # このモジュールは除外
 
-    #対象moduleが1つなら実行する
+    # 対象moduleが1つなら実行する
     f_num = len(f_names)
-    if(f_num == 1) :
-        module_name = f_names[0][0:-3] # .pyを除く
-    else :
+    if f_num == 1:
+        module_name = f_names[0][0:-3]  # .pyを除く
+    else:
         module_name = ""
 
     return module_name
+
 
 def test_data_reader():
     """test_data.txtを読み出しunittest用のテストリストを作成して返す
@@ -49,15 +52,15 @@ def test_data_reader():
         r_l = fin.readlines()
 
     # 読み出した内容を空改行ブロック区切りのデータリスト化する
-    r_l.append("\n")  # split処理の共通化のため、改行追加
     all_d = "".join(r_l)
     d_block = all_d.split("\n\n")  # 期待値から末尾の改行が削除されるので注意
+    if d_block[-1].endswith("\n"): d_block[-1] = d_block[-1][0:-1]  # 末尾に\nが残る場合は削除
     d_block = list(filter(lambda x: x != "", d_block))  # 空行削除
 
     # 入力値、出力期待値のペアを作成
     len_block = len(d_block)
     for i in range(0, len_block, 2):
-        if(i+1 > len_block-1):
+        if i + 1 > len_block - 1:
             break;
         else:
             inputs = tuple(d_block[i].split("\n"))
@@ -73,25 +76,25 @@ def test_para_gen(test_l):
     """１つのテスト用のパラメータを返すジェネレーター
     :return test_name,inputs,expected
     テストリストを元に、パラメーターを作成する。呼ばれる毎に、次のテストのパラメーターを返す。
-    テスト名称はtest
     """
     total_test_num = len(test_l)
 
     for i in range(total_test_num):  # todo supportクラスを見ること
-        yield test_l[i][0], test_l[i][1], "test pair : No.{0}".format(i+1)
+        yield test_l[i][0], test_l[i][1], "test pair : No.{0}".format(i + 1)
+
 
 class MyModuleTestCase(unittest.TestCase):
     def setUp(self):
-        #データファイル確認
+        # データファイル確認
         df_exists = os.path.exists("{}".format(test_data_name))
-        if(df_exists == False):
+        if not df_exists:
             self.fail("'{0}' is not found. Set {0} file in current dir.".format(test_data_name))
 
-        #対象モジュール確認
+        # 対象モジュール確認
         if test_module_name == "":
             # モジュール自動探索の場合
             self.test_module_name = pickup_module()
-            if(self.test_module_name == ""):
+            if self.test_module_name == "":
                 self.fail("Target module can't pickup.Check current dir.")
         else:
             # モジュール指定の場合
@@ -113,7 +116,10 @@ class MyModuleTestCase(unittest.TestCase):
                 sys.stdout = io.StringIO()
                 # input()をmock化する / 出力はinputs_lの順に置き換えられる
                 with mock.patch('builtins.input', side_effect=inputs_l) as m:
-                    run_module(self.test_module_name)
+                    try:
+                        run_module(self.test_module_name)
+                    except StopIteration:
+                        self.fail('File"test_data.txt" is Bad Data. Maybe "input() line" is too few.')
                     self.assertEqual(sys.stdout.getvalue(), expected)
                 sys.stdout.close()
 
