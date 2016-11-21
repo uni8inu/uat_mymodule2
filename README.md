@@ -1,5 +1,6 @@
 UAT MyModule
 ============
+![ICON](https://raw.githubusercontent.com/uni8inu/uat_mymodule2/master/imgs/uat_mm_120.png "icon")  
 Pythonのunittestのテンプレート。  
 標準入力、標準出力を使うmoduleへのUser Acceptance Test(受け入れテスト)をサポートする。
 
